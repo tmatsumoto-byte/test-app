@@ -1,12 +1,15 @@
 let current = 0;
 let score = 0;
 let selected = null;
+let timer; // タイマーID
+const timeLimit = 30; // 秒数
 
-// ランダム10問
-let quiz = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
+// ランダム20問
+let quiz = questions.sort(() => 0.5 - Math.random()).slice(0, 20);
 
 function loadQuestion() {
   selected = null; // ←これ重要（バグ修正）
+  clearInterval(timer); // 古いタイマー停止
 
   const q = quiz[current];
 
@@ -34,8 +37,39 @@ function loadQuestion() {
 
     choicesDiv.appendChild(btn);
   });
+
+  // タイマー開始
+  startTimer();
 }
 
+function startTimer() {
+  let timeLeft = timeLimit;
+  const timerEl = document.getElementById("timer");
+  timerEl.textContent = timeLeft;
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      autoNextQuestion();
+    }
+  }, 1000);
+}
+
+// タイムアップ時の自動処理
+function autoNextQuestion() {
+  // 選択されていなければスコアなしで次に
+  current++;
+  if (current < quiz.length) {
+    loadQuestion();
+  } else {
+    finishTest();
+  }
+}
+
+// ユーザーがボタンで進む場合
 function nextQuestion() {
   if (!selected) {
     alert("選択してください");
@@ -47,7 +81,6 @@ function nextQuestion() {
   }
 
   current++;
-
   if (current < quiz.length) {
     loadQuestion();
   } else {
@@ -56,20 +89,22 @@ function nextQuestion() {
 }
 
 function finishTest() {
+  clearInterval(timer);
+
   document.getElementById("question").innerHTML = "";
   document.getElementById("choices").innerHTML = "";
+  document.getElementById("timer").style.display = "none";
 
   const shop = document.getElementById("shop").value;
   const name = document.getElementById("name").value;
 
-  // 未入力チェック（追加）
+  // 未入力チェック
   if (!shop || !name) {
     alert("店舗名と氏名を入力してください");
     location.reload();
     return;
   }
 
-  // 合否判定（追加）
   const resultText = score >= 8 ? "合格" : "不合格";
 
   document.getElementById("result").innerText =
