@@ -1,18 +1,17 @@
 let current = 0;
 let score = 0;
 let selected = null;
-let timer; // タイマーID
-const timeLimit = 30; // 秒数
+let timer;
+const timeLimit = 30;
 
-// ランダム20問
-let quiz = questions.sort(() => 0.5 - Math.random()).slice(0, 20);
+// ランダム10問
+let quiz = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
 
 function loadQuestion() {
-  selected = null; // ←これ重要（バグ修正）
-  clearInterval(timer); // 古いタイマー停止
+  selected = null;
+  clearInterval(timer);
 
   const q = quiz[current];
-
   document.getElementById("question").innerText = q.q;
   document.getElementById("progress").innerText = `${current + 1} / 10`;
 
@@ -25,31 +24,39 @@ function loadQuestion() {
 
     btn.onclick = () => {
       selected = choice;
-
-      // ボタン色リセット
-      document.querySelectorAll("#choices button").forEach(b => {
-        b.style.background = "";
-      });
-
-      // 選択中のボタンを強調
+      document.querySelectorAll("#choices button").forEach(b => b.style.background = "#2196F3");
       btn.style.background = "lightblue";
     };
 
     choicesDiv.appendChild(btn);
   });
 
-  // タイマー開始
   startTimer();
 }
 
 function startTimer() {
+  clearInterval(timer);
   let timeLeft = timeLimit;
-  const timerEl = document.getElementById("timer");
-  timerEl.textContent = timeLeft;
+  const timerBar = document.getElementById("timerBar");
+  const timerText = document.getElementById("timerText");
+
+  timerBar.style.width = "100%";
+  timerBar.style.background = "lightgreen";
+  timerText.textContent = timeLeft;
 
   timer = setInterval(() => {
     timeLeft--;
-    timerEl.textContent = timeLeft;
+    const percent = (timeLeft / timeLimit) * 100;
+    timerBar.style.width = percent + "%";
+    timerText.textContent = timeLeft;
+
+    if (timeLeft > timeLimit * 0.6) {
+      timerBar.style.background = "lightgreen";
+    } else if (timeLeft > timeLimit * 0.3) {
+      timerBar.style.background = "yellow";
+    } else {
+      timerBar.style.background = "red";
+    }
 
     if (timeLeft <= 0) {
       clearInterval(timer);
@@ -58,9 +65,7 @@ function startTimer() {
   }, 1000);
 }
 
-// タイムアップ時の自動処理
 function autoNextQuestion() {
-  // 選択されていなければスコアなしで次に
   current++;
   if (current < quiz.length) {
     loadQuestion();
@@ -69,17 +74,14 @@ function autoNextQuestion() {
   }
 }
 
-// ユーザーがボタンで進む場合
 function nextQuestion() {
   if (!selected) {
     alert("選択してください");
     return;
   }
-
   if (selected === quiz[current].answer) {
     score++;
   }
-
   current++;
   if (current < quiz.length) {
     loadQuestion();
@@ -90,15 +92,13 @@ function nextQuestion() {
 
 function finishTest() {
   clearInterval(timer);
-
   document.getElementById("question").innerHTML = "";
   document.getElementById("choices").innerHTML = "";
-  document.getElementById("timer").style.display = "none";
+  document.getElementById("timerContainer").style.display = "none";
 
   const shop = document.getElementById("shop").value;
   const name = document.getElementById("name").value;
 
-  // 未入力チェック
   if (!shop || !name) {
     alert("店舗名と氏名を入力してください");
     location.reload();
@@ -106,14 +106,12 @@ function finishTest() {
   }
 
   const resultText = score >= 8 ? "合格" : "不合格";
-
   document.getElementById("result").innerText =
     `${name}（${shop}）のスコア：${score}/10 → ${resultText}`;
 
   sendToSheet(shop, name, score);
 }
 
-// スプレッドシート送信
 function sendToSheet(shop, name, score) {
   fetch("https://script.google.com/macros/s/AKfycbwmyrxLXB2AjoTzfnQlqD2zYA0NzQ8loBio9GsZwYHDLd6P7ZTHAjw-oRXdhAT8IdIFLQ/exec", {
     method: "POST",
