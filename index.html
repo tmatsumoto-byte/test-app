@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ブランドテスト</title>
+
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+  }
+
+  button {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+  }
+</style>
+
+</head>
+<body>
+
+<h2>テスト開始</h2>
+
+店舗名：<br>
+<input type="text" id="shop"><br><br>
+
+氏名：<br>
+<input type="text" id="name"><br><br>
+
+<hr>
+
+<div id="question">ここに問題が表示されます</div>
+<div id="choices"></div>
+
+<p id="progress"></p>
+
+<button type="button" onclick="nextQuestion()">次へ</button>
+
+<h3 id="result"></h3>
+
+<!-- 順番重要 -->
+<script src="questions.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
